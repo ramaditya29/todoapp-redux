@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { addTodo, toggleTodo } from './actions';
+import { addTodo, toggleTodo, visibilityFilter } from './actions';
 import { bindActionCreators } from "redux";
 import InputField from './components/InputField';
 import TodoList from './components/TodoList';
-
+import Footer from './components/footer';
 import './App.css';
 
 class App extends Component{
@@ -34,8 +34,14 @@ class App extends Component{
     this.props.toggleTodo(currItem.id);
   }
 
+  handleVisibleFilter = (value) => {
+    console.log(value);
+    this.props.visibilityFilter(value);
+  }
+
   render(){
-    let { todos } = this.props;
+    let { todos, active } = this.props;
+    let types = ['SHOW_ALL', 'SHOW_COMPLETED', 'SHOW_ACTIVE'];
     return (
       <div>
         <div>
@@ -45,15 +51,27 @@ class App extends Component{
         <div>
           <TodoList todoitems={ todos } toggleHandler={this.toggleHandler}/>
         </div>
+        <div>
+          <Footer active={active} types={types} handleClick={this.handleVisibleFilter}/>
+        </div>
       </div>
     );
   }
 
 }
 
+const handleVisibilityFilter = (todos = [] , visibilityFilter) => {
+  switch(visibilityFilter){
+      case 'SHOW_ALL': return todos;
+      case 'SHOW_COMPLETED': return todos.filter(item =>  item.completed);
+      case 'SHOW_ACTIVE': return todos.filter(item => !item.completed);
+  }
+}
+
 const mapStateToProps = state => {
   return {
-    todos: state.todos
+   todos: handleVisibilityFilter(state.todos, state.visibilityfilter),
+   active: state.visibilityfilter
   }
 }
 
@@ -61,7 +79,8 @@ const mapDispatchToProps = dispatch => {
   return bindActionCreators(
     {
       addTodo,
-      toggleTodo
+      toggleTodo,
+      visibilityFilter
     },
     dispatch
   );
